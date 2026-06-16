@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DATEXIA — Cyber Cafe Workspace</title>
+<style>
+  :root {
+    --obsidian: #0B0F19;
+    --obsidian-light: #111827;
+    --surface: #161D2E;
+    --surface-2: #1E293B;
+    --surface-3: #243047;
+    --cyan: #06B6D4;
+    --cyan-dim: #0891B2;
+    --cyan-glow: rgba(6,182,212,0.15);
+    --indigo: #6366F1;
+    --indigo-dim: #4F46E5;
+    --indigo-glow: rgba(99,102,241,0.15);
+    --border: #1E293B;
+    --border-2: #2D3748;
+    --text-primary: #F1F5F9;
+    --text-secondary: #94A3B8;
+    --text-muted: #475569;
+    --success: #10B981;
+    --warning: #F59E0B;
+    --danger: #EF4444;
+    --radius: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--obsidian); color: var(--text-primary); font-family: 'Inter', system-ui, sans-serif; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
+
+  /* TOPBAR */
+  .topbar { height: 52px; background: var(--obsidian-light); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 16px; gap: 12px; flex-shrink: 0; z-index: 100; }
+  .logo { display: flex; align-items: center; gap: 8px; }
+  .logo-mark { width: 28px; height: 28px; background: linear-gradient(135deg, var(--cyan), var(--indigo)); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 11px; color: white; letter-spacing: -0.5px; }
+  .logo-name { font-size: 15px; font-weight: 700; letter-spacing: 2px; color: var(--text-primary); }
+  .logo-name span { color: var(--cyan); }
+  .topbar-divider { width: 1px; height: 24px; background: var(--border-2); margin: 0 4px; }
+  .session-badge { display: flex; align-items: center; gap: 6px; padding: 4px 10px; background: var(--surface); border: 1px solid var(--border-2); border-radius: 20px; font-size: 12px; color: var(--text-secondary); }
+  .session-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+  .topbar-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .btn { padding: 6px 14px; border-radius: var(--radius); border: 1px solid var(--border-2); background: var(--surface); color: var(--text-secondary); font-size: 12px; cursor: pointer; transition: all 0.15s; font-family: inherit; display: flex; align-items: center; gap: 6px; }
+  .btn:hover { background: var(--surface-2); color: var(--text-primary); border-color: var(--cyan); }
+  .btn-cyan { background: var(--cyan); border-color: var(--cyan); color: #0B0F19; font-weight: 600; }
+  .btn-cyan:hover { background: var(--cyan-dim); border-color: var(--cyan-dim); color: #0B0F19; }
+  .btn-indigo { background: var(--indigo); border-color: var(--indigo); color: white; font-weight: 600; }
+  .btn-indigo:hover { background: var(--indigo-dim); border-color: var(--indigo-dim); }
+
+  /* MAIN LAYOUT */
+  .main { display: flex; flex: 1; overflow: hidden; }
+
+  /* LEFT SIDEBAR */
+  .sidebar { width: 220px; background: var(--obsidian-light); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; transition: width 0.2s; overflow: hidden; }
+  .sidebar.collapsed { width: 52px; }
+  .sidebar-header { padding: 12px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .sidebar-label { font-size: 10px; font-weight: 600; letter-spacing: 1.5px; color: var(--text-muted); text-transform: uppercase; white-space: nowrap; overflow: hidden; }
+  .collapse-btn { width: 24px; height: 24px; background: var(--surface); border: 1px solid var(--border-2); border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 12px; flex-shrink: 0; }
+  .collapse-btn:hover { color: var(--cyan); border-color: var(--cyan); }
+  .nav { padding: 8px; display: flex; flex-direction: column; gap: 2px; flex: 1; overflow-y: auto; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--radius); cursor: pointer; transition: all 0.15s; color: var(--text-secondary); font-size: 13px; white-space: nowrap; border: 1px solid transparent; }
+  .nav-item:hover { background: var(--surface); color: var(--text-primary); }
+  .nav-item.active { background: var(--cyan-glow); color: var(--cyan); border-color: rgba(6,182,212,0.2); }
+  .nav-icon { font-size: 16px; flex-shrink: 0; width: 20px; text-align: center; }
+  .nav-label { white-space: nowrap; overflow: hidden; font-size: 13px; }
+  .sidebar.collapsed .nav-label { display: none; }
+  .sidebar.collapsed .sidebar-label { display: none; }
+  .sidebar-section { padding: 8px 12px 4px; font-size: 10px; font-weight: 600; letter-spacing: 1.5px; color: var(--text-muted); text-transform: uppercase; white-space: nowrap; overflow: hidden; }
+  .sidebar.collapsed .sidebar-section { display: none; }
+
+  /* CENTER CANVAS */
+  .canvas-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--obsidian); }
+  .canvas-toolbar { height: 44px; border-bottom: 1px solid var(--border); background: var(--obsidian-light); display: flex; align-items: center; padding: 0 12px; gap: 8px; flex-shrink: 0; }
+  .tool-btn { width: 30px; height: 30px; border-radius: 6px; background: transparent; border: 1px solid transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 14px; transition: all 0.15s; }
+  .tool-btn:hover { background: var(--surface); color: var(--text-primary); border-color: var(--border-2); }
+  .tool-btn.active { background: var(--cyan-glow); color: var(--cyan); border-color: rgba(6,182,212,0.3); }
+  .canvas-content { flex: 1; overflow: auto; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .drop-zone { width: 100%; max-width: 720px; min-height: 420px; border: 2px dashed var(--border-2); border-radius: var(--radius-xl); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; cursor: pointer; transition: all 0.2s; position: relative; background: var(--surface); }
+  .drop-zone:hover, .drop-zone.dragover { border-color: var(--cyan); background: var(--cyan-glow); }
+  .drop-icon { font-size: 40px; color: var(--text-muted); }
+  .drop-title { font-size: 16px; font-weight: 600; color: var(--text-secondary); }
+  .drop-sub { font-size: 13px; color: var(--text-muted); }
+  .canvas-preview { position: relative; background: #fff; border-radius: var(--radius-lg); overflow: hidden; box-shadow: 0 0 0 1px rgba(6,182,212,0.3), 0 20px 60px rgba(0,0,0,0.5); }
+  canvas#mainCanvas { display: block; }
+
+  /* RIGHT PANEL */
+  .right-panel { width: 280px; background: var(--obsidian-light); border-left: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden; }
+  .panel-header { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .panel-title { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+  .panel-body { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+  .panel-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 12px; }
+  .panel-section-title { font-size: 11px; font-weight: 600; letter-spacing: 1px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px; }
+
+  /* SLIDERS */
+  .slider-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .slider-label { font-size: 12px; color: var(--text-secondary); width: 80px; flex-shrink: 0; }
+  .slider-val { font-size: 12px; color: var(--cyan); width: 32px; text-align: right; flex-shrink: 0; }
+  input[type=range] { flex: 1; -webkit-appearance: none; height: 3px; background: var(--border-2); border-radius: 2px; outline: none; cursor: pointer; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--cyan); cursor: pointer; border: 2px solid var(--obsidian); }
+  input[type=range]:hover { background: var(--border); }
+
+  /* SELECT */
+  select { background: var(--surface-2); border: 1px solid var(--border-2); border-radius: var(--radius); color: var(--text-primary); font-size: 12px; padding: 6px 8px; width: 100%; cursor: pointer; font-family: inherit; outline: none; }
+  select:focus { border-color: var(--cyan); }
+  .select-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
+  .select-label { font-size: 11px; color: var(--text-muted); }
+
+  /* TABS */
+  .tabs { display: flex; background: var(--surface); border-radius: var(--radius); padding: 3px; gap: 3px; margin-bottom: 12px; }
+  .tab { flex: 1; padding: 5px; text-align: center; font-size: 11px; border-radius: 6px; cursor: pointer; color: var(--text-muted); transition: all 0.15s; }
+  .tab.active { background: var(--surface-3); color: var(--text-primary); }
+
+  /* MODULES */
+  .module { display: none; width: 100%; height: 100%; }
+  .module.active { display: flex; flex-direction: column; width: 100%; height: 100%; }
+
+  /* PASSPORT MODULE */
+  .passport-layout { display: flex; gap: 0; height: 100%; }
+  .passport-canvas-wrap { flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; overflow: auto; }
+  .config-panel { width: 240px; border-left: 1px solid var(--border); background: var(--obsidian-light); padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+
+  /* PDF MODULE */
+  .pdf-area { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
+  .pdf-drop { border: 2px dashed var(--border-2); border-radius: var(--radius-lg); padding: 32px; text-align: center; cursor: pointer; transition: all 0.2s; }
+  .pdf-drop:hover { border-color: var(--indigo); background: var(--indigo-glow); }
+  .pdf-list { display: flex; flex-direction: column; gap: 6px; }
+  .pdf-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
+  .pdf-icon { color: var(--danger); font-size: 18px; }
+  .pdf-name { flex: 1; font-size: 13px; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pdf-actions { display: flex; gap: 4px; }
+  .icon-btn { width: 26px; height: 26px; background: transparent; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 13px; transition: all 0.15s; }
+  .icon-btn:hover { background: var(--surface-2); color: var(--text-primary); }
+
+  /* SYNC MODULE */
+  .sync-wrap { flex: 1; display: flex; gap: 20px; padding: 24px; overflow: auto; }
+  .sync-card { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+  .qr-box { width: 160px; height: 160px; background: white; border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; }
+  .session-code { font-size: 36px; font-weight: 800; letter-spacing: 6px; color: var(--cyan); font-variant-numeric: tabular-nums; }
+  .sync-status { font-size: 13px; color: var(--text-secondary); text-align: center; }
+  .sync-uploads { width: 100%; display: flex; flex-direction: column; gap: 6px; max-height: 200px; overflow-y: auto; }
+  .upload-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: var(--surface-2); border-radius: var(--radius); font-size: 12px; color: var(--text-secondary); }
+  .upload-thumb { width: 36px; height: 36px; border-radius: 4px; object-fit: cover; background: var(--surface-3); flex-shrink: 0; }
+
+  /* NOTIFICATION & MODALS */
+  .notif { position: fixed; top: 60px; right: 16px; padding: 10px 16px; background: var(--surface); border: 1px solid var(--border-2); border-radius: var(--radius-lg); font-size: 13px; color: var(--text-primary); z-index: 999; transition: all 0.3s; transform: translateX(120%); display: flex; align-items: center; gap: 8px; }
+  .notif.show { transform: translateX(0); }
+  .notif.success { border-color: var(--success); }
+  .notif.danger { border-color: var(--danger); }
+  .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 500; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+  .modal-bg.open { opacity: 1; pointer-events: all; }
+  .modal { background: var(--surface); border: 1px solid var(--border-2); border-radius: var(--radius-xl); padding: 24px; max-width: 460px; width: 90%; }
+  .modal h3 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+  .modal p { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 16px; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+  .progress-bar { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; margin: 6px 0; }
+  .progress-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
+  .progress-fill.cyan { background: var(--cyan); }
+  .progress-fill.indigo { background: var(--indigo); }
+  .swatches { display: flex; gap: 6px; }
+  .swatch { width: 24px; height: 24px; border-radius: 4px; cursor: pointer; border: 2px solid transparent; transition: border-color 0.15s; }
+  .swatch.active { border-color: var(--cyan); }
+  .compress-tiers { display: flex; gap: 6px; margin: 8px 0; }
+  .tier-btn { flex: 1; padding: 6px; text-align: center; font-size: 11px; border-radius: 6px; cursor: pointer; border: 1px solid var(--border); background: var(--surface-2); color: var(--text-muted); transition: all 0.15s; }
+  .tier-btn.active { border-color: var(--indigo); background: var(--indigo-glow); color: var(--indigo); }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 2px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+  .badge { padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; letter-spacing: 0.5px; }
+  .badge-cyan { background: var(--cyan-glow); color: var(--cyan); border: 1px solid rgba(6,182,212,0.3); }
+  .badge-indigo { background: var(--indigo-glow); color: var(--indigo); border: 1px solid rgba(99,102,241,0.3); }
+  .security-bar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: rgba(16,185,129,0.05); border: 1px solid rgba(16,185,129,0.15); border-radius: var(--radius); }
+  .security-icon { color: var(--success); font-size: 14px; }
+  .security-text { font-size: 11px; color: var(--text-muted); }
+  .security-text strong { color: var(--text-secondary); }
+  input[type=text], input[type=number] { background: var(--surface-2); border: 1px solid var(--border-2); border-radius: var(--radius); color: var(--text-primary); font-size: 12px; padding: 6px 10px; width: 100%; font-family: inherit; outline: none; }
+  .export-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .export-btn { padding: 8px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; text-align: center; font-size: 12px; color: var(--text-secondary); transition: all 0.15s; font-family: inherit; }
+  .export-btn:hover { border-color: var(--cyan); color: var(--cyan); background: var(--cyan-glow); }
+  .processing-overlay { position: absolute; inset: 0; background: rgba(11,15,25,0.85); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; border-radius: var(--radius-xl); z-index: 10; }
+  .spinner { width: 32px; height: 32px; border: 2px solid var(--border); border-top-color: var(--cyan); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .page-range-input { width: 100%; padding: 8px 10px; background: var(--surface-2); border: 1px solid var(--border-2); border-radius: var(--radius); color: var(--text-primary); font-size: 13px; font-family: inherit; outline: none; }
+  @media (max-width: 768px) { .sidebar { display: none; } .right-panel { display: none; } .canvas-content { padding: 12px; } .sync-wrap { flex-direction: column; } }
+  [data-tip] { position: relative; }
+  [data-tip]:hover::after { content: attr(data-tip); position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); padding: 4px 8px; background: var(--surface-3); border: 1px solid var(--border-2); border-radius: 4px; font-size: 11px; color: var(--text-secondary); white-space: nowrap; z-index: 200; pointer-events: none; }
+  .connect-visual { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 20px; }
+  .connect-ring { width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--cyan); display: flex; align-items: center; justify-content: center; position: relative; }
+  .connect-ring::before { content: ''; position: absolute; inset: -8px; border-radius: 50%; border: 1px solid rgba(6,182,212,0.2); animation: ringPulse 2s ease-out infinite; }
+  @keyframes ringPulse { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(1.4); opacity: 0; } }
+  .connect-inner { font-size: 28px; color: var(--cyan); }
+  input[type=file] { display: none; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-mark">DX</div>
+    <div class="logo-name">DATE<span>XIA</span></div>
+  </div>
+  <div class="topbar-divider"></div>
+  <div class="session-badge">
+    <div class="session-dot"></div>
+    <span id="topSessionId">Session —</span>
+  </div>
+  <div class="topbar-divider"></div>
+  <span style="font-size:11px;color:var(--text-muted);">🔒 End-to-End Encrypted</span>
+  <div class="topbar-actions">
+    <button class="btn" onclick="openModal('ttlModal')">⏱ 24h Auto-Purge</button>
+    <button class="btn btn-cyan" onclick="showModule('sync')">📱 Mobile Sync</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <span class="sidebar-label">Workspace</span>
+      <div class="collapse-btn" onclick="toggleSidebar()">◀</div>
+    </div>
+    <div class="nav" style="flex:1;">
+      <div class="sidebar-section">Tools</div>
+      <div class="nav-item active" id="nav-photo" onclick="showModule('photo')">
+        <span class="nav-icon">🖼</span>
+        <span class="nav-label">Photo Editor</span>
+      </div>
+      <div class="nav-item" id="nav-passport" onclick="showModule('passport')">
+        <span class="nav-icon">🪪</span>
+        <span class="nav-label">Passport Print</span>
+      </div>
+      <div class="nav-item" id="nav-pdf" onclick="showModule('pdf')">
+        <span class="nav-icon">📄</span>
+        <span class="nav-label">PDF Tools</span>
+      </div>
+      <div class="nav-item" id="nav-sync" onclick="showModule('sync')">
+        <span class="nav-icon">📡</span>
+        <span class="nav-label">Mobile Sync</span>
+      </div>
+      <div class="sidebar-section" style="margin-top:8px;">System</div>
+      <div class="nav-item" onclick="openModal('securityModal')">
+        <span class="nav-icon">🛡</span>
+        <span class="nav-label">Security Info</span>
+      </div>
+      <div class="nav-item" onclick="openModal('ttlModal')">
+        <span class="nav-icon">⏱</span>
+        <span class="nav-label">Data Lifecycle</span>
+      </div>
+    </div>
+    <div style="padding:12px;border-top:1px solid var(--border);">
+      <div class="security-bar">
+        <span class="security-icon">✓</span>
+        <span class="security-text"><strong>AES-256</strong> active</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="canvas-area" id="canvasArea">
+
+    <div class="module active" id="mod-photo">
+      <div class="canvas-toolbar">
+        <button class="tool-btn active" data-tip="Select">↖</button>
+        <button class="tool-btn" data-tip="Move">✥</button>
+        <button class="tool-btn" data-tip="Crop">⊠</button>
+        <div style="width:1px;height:20px;background:var(--border);margin:0 4px;"></div>
+        <button class="tool-btn" data-tip="Zoom In" onclick="photoZoom(1.2)">🔍+</button>
+        <button class="tool-btn" data-tip="Zoom Out" onclick="photoZoom(0.8)">🔍-</button>
+        <button class="tool-btn" data-tip="Fit" onclick="photoFit()">⊞</button>
+        <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+          <span id="photoDims" style="font-size:11px;color:var(--text-muted);"></span>
+          <label class="btn btn-indigo" style="cursor:pointer;" for="photoFileInput">↑ Upload</label>
+          <input type="file" id="photoFileInput" accept="image/*" onchange="loadPhotoFile(this)">
+          <button class="btn btn-cyan" onclick="exportPhoto()">Export ▾</button>
+        </div>
+      </div>
+      <div class="canvas-content" id="photoDropZone" ondragover="handlePhotoDragOver(event)" ondrop="handlePhotoDrop(event)">
+        <div class="drop-zone" id="photoDropArea" onclick="document.getElementById('photoFileInput').click()">
+          <div class="drop-icon">🖼</div>
+          <div class="drop-title">Drop image here or click to upload</div>
+          <div class="drop-sub">PNG, JPG, WEBP — up to 50 MB</div>
+          <div class="drop-sub" style="margin-top:8px;">Or receive from <strong style="color:var(--cyan);">Mobile Sync</strong></div>
+        </div>
+        <div class="canvas-preview" id="photoPreview" style="display:none;position:relative;">
+          <canvas id="photoCanvas"></canvas>
+          <div class="processing-overlay" id="photoProcessing" style="display:none;">
+            <div class="spinner"></div>
+            <span style="font-size:13px;color:var(--text-secondary);" id="processingLabel">Processing…</span>
+            <div class="progress-bar" style="width:200px;">
+              <div class="progress-fill cyan" id="processingBar" style="width:0%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="module" id="mod-passport">
+      <div class="canvas-toolbar">
+        <span style="font-size:12px;color:var(--text-muted);">Passport & ID Photo Automation</span>
+        <div style="margin-left:auto;display:flex;gap:8px;">
+          <label class="btn" style="cursor:pointer;" for="passportFileInput">↑ Upload Photo</label>
+          <input type="file" id="passportFileInput" accept="image/*" onchange="loadPassportFile(this)">
+          <button class="btn btn-cyan" onclick="renderPassportGrid()">Generate Grid ▸</button>
+          <button class="btn btn-indigo" onclick="exportPassport()">Export PDF</button>
+        </div>
+      </div>
+      <div class="passport-layout">
+        <div class="passport-canvas-wrap">
+          <div id="passportDropPlaceholder" style="text-align:center;color:var(--text-muted);">
+            <div style="font-size:48px;margin-bottom:12px;">🪪</div>
+            <div style="font-size:15px;color:var(--text-secondary);margin-bottom:6px;">Upload a photo to begin</div>
+            <div style="font-size:12px;">Set parameters in the right panel, then click Generate Grid</div>
+          </div>
+          <div id="passportCanvasWrap" style="display:none;">
+            <canvas id="passportCanvas" style="border:1px solid var(--border);border-radius:4px;max-width:100%;"></canvas>
+            <div style="margin-top:8px;font-size:11px;color:var(--text-muted);text-align:center;" id="passportInfo"></div>
+          </div>
+        </div>
+        <div class="config-panel">
+          <div class="panel-section-title">Page Size</div>
+          <div class="select-row">
+            <span class="select-label">Paper profile</span>
+            <select id="paperProfile" onchange="updatePassportConfig()">
+              <option value="a4">A4 (2480 × 3508 px, 300 DPI)</option>
+              <option value="4x6">4×6 Photo (1200 × 1800 px, 300 DPI)</option>
+            </select>
+          </div>
+          <div class="panel-section-title" style="margin-top:12px;">Photo Size</div>
+          <div class="select-row">
+            <span class="select-label">Preset</span>
+            <select id="passportPreset" onchange="applyPassportPreset()">
+              <option value="standard">Standard Passport (3.5 × 4.5 cm)</option>
+              <option value="usvisa">US Visa (2 × 2 inches)</option>
+              <option value="stamp">Stamp Size (2 × 2.5 cm)</option>
+              <option value="custom">Custom…</option>
+            </select>
+          </div>
+          <div id="customSizeFields" style="display:none;">
+            <div class="slider-row">
+              <span class="slider-label">Width (cm)</span>
+              <input type="number" id="customW" value="3.5" min="1" max="10" step="0.1" style="width:70px;">
+            </div>
+            <div class="slider-row">
+              <span class="slider-label">Height (cm)</span>
+              <input type="number" id="customH" value="4.5" min="1" max="10" step="0.1" style="width:70px;">
+            </div>
+          </div>
+          <div class="panel-section-title" style="margin-top:12px;">Layout</div>
+          <div class="slider-row">
+            <span class="slider-label">Padding (mm)</span>
+            <input type="range" id="gridPadding" min="0" max="10" value="3" step="1" oninput="updateSliderVal('gridPadding','gridPaddingVal')">
+            <span class="slider-val" id="gridPaddingVal">3</span>
+          </div>
+          <div class="slider-row">
+            <span class="slider-label">Gap (mm)</span>
+            <input type="range" id="gridGap" min="1" max="8" value="3" step="1" oninput="updateSliderVal('gridGap','gridGapVal')">
+            <span class="slider-val" id="gridGapVal">3</span>
+          </div>
+          <div style="margin-top:4px;padding:8px;background:var(--surface-2);border-radius:var(--radius);font-size:11px;color:var(--text-muted);" id="gridPreviewInfo">
+            Configure layout above then generate
+          </div>
+          <div class="panel-section-title" style="margin-top:12px;">Cut Lines</div>
+          <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-secondary);cursor:pointer;">
+            <input type="checkbox" id="showCutLines" checked style="width:auto;accent-color:var(--cyan);"> Show cut-line borders
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-secondary);cursor:pointer;margin-top:6px;">
+            <input type="checkbox" id="showCutMarks" style="width:auto;accent-color:var(--cyan);"> Extended cut marks
+          </label>
+          <div class="panel-section-title" style="margin-top:12px;">Background</div>
+          <div class="swatches">
+            <div class="swatch active" style="background:#FFFFFF;" data-color="#FFFFFF" onclick="setPassportBg(this,'#FFFFFF')"></div>
+            <div class="swatch" style="background:#0A6BC4;" data-color="#0A6BC4" onclick="setPassportBg(this,'#0A6BC4')"></div>
+            <div class="swatch" style="background:#F0F0F0;" data-color="#F0F0F0" onclick="setPassportBg(this,'#F0F0F0')"></div>
+            <div class="swatch" style="background:rgba(0,0,0,0);border:1px dashed #555;" data-color="transparent" onclick="setPassportBg(this,'transparent')"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="module" id="mod-pdf">
+      <div class="canvas-toolbar">
+        <div class="tabs" style="width:320px;margin:0;">
+          <div class="tab active" id="pdftab-merge" onclick="switchPdfTab('merge')">Merge</div>
+          <div class="tab" id="pdftab-split" onclick="switchPdfTab('split')">Split</div>
+          <div class="tab" id="pdftab-compress" onclick="switchPdfTab('compress')">Compress</div>
+        </div>
+      </div>
+      <div class="pdf-area">
+        <div id="pdfpanel-merge">
+          <div class="pdf-drop" id="mergeDropZone" onclick="document.getElementById('mergeInput').click()" ondragover="handlePdfDragOver(event,'mergeDropZone')" ondrop="handlePdfDrop(event,'merge')">
+            <div style="font-size:24px;margin-bottom:8px;">📄</div>
+            <div style="font-size:14px;color:var(--text-secondary);font-weight:600;">Drop PDF files here to merge</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Drag multiple PDFs and reorder them below</div>
+            <input type="file" id="mergeInput" accept=".pdf" multiple onchange="addPdfFiles(this,'merge')">
+          </div>
+          <div class="pdf-list" id="mergePdfList"></div>
+          <div style="display:flex;gap:8px;margin-top:8px;" id="mergeActions" style="display:none;">
+            <button class="btn btn-indigo" onclick="mergePdfs()" id="mergePdfsBtn" style="display:none;">Merge PDFs →</button>
+            <button class="btn" onclick="clearPdfList('merge')">Clear All</button>
+          </div>
+          <div id="mergeResult" style="display:none;margin-top:12px;padding:12px;background:var(--surface);border:1px solid var(--success);border-radius:var(--radius-lg);">
+            <div style="font-size:13px;color:var(--success);font-weight:600;">✓ Merge complete</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:4px;" id="mergeResultInfo"></div>
+            <button class="btn btn-cyan" style="margin-top:8px;" onclick="downloadMergeResult()">Download merged.pdf</button>
+          </div>
+        </div>
+        <div id="pdfpanel-split" style="display:none;">
+          <div class="pdf-drop" onclick="document.getElementById('splitInput').click()">
+            <div style="font-size:24px;margin-bottom:8px;">✂️</div>
+            <div style="font-size:14px;color:var(--text-secondary);font-weight:600;">Upload PDF to split</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Specify page ranges like: 1-3, 5, 7-10</div>
+            <input type="file" id="splitInput" accept=".pdf" onchange="loadSplitFile(this)">
+          </div>
+          <div id="splitConfig" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-top:12px;">
+            <div id="splitFileInfo" style="font-size:13px;color:var(--text-primary);margin-bottom:12px;"></div>
+            <div style="margin-bottom:10px;">
+              <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">Page ranges (e.g. 1-3, 5, 7-10)</div>
+              <input class="page-range-input" id="splitRanges" placeholder="e.g. 1-3, 5, 7-10" type="text">
+            </div>
+            <div id="splitRangePreview" style="font-size:12px;color:var(--text-muted);margin-bottom:10px;"></div>
+            <button class="btn btn-indigo" onclick="splitPdf()">Split PDF →</button>
+          </div>
+          <div id="splitResult" style="display:none;margin-top:12px;padding:12px;background:var(--surface);border:1px solid var(--success);border-radius:var(--radius-lg);">
+            <div style="font-size:13px;color:var(--success);font-weight:600;">✓ Split complete</div>
+            <div id="splitResultList" style="margin-top:8px;display:flex;flex-direction:column;gap:6px;"></div>
+          </div>
+        </div>
+        <div id="pdfpanel-compress" style="display:none;">
+          <div class="pdf-drop" onclick="document.getElementById('compressInput').click()">
+            <div style="font-size:24px;margin-bottom:8px;">🗜</div>
+            <div style="font-size:14px;color:var(--text-secondary);font-weight:600;">Upload PDF to compress</div>
+            <input type="file" id="compressInput" accept=".pdf" onchange="loadCompressFile(this)">
+          </div>
+          <div id="compressConfig" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-top:12px;">
+            <div id="compressFileInfo" style="font-size:13px;color:var(--text-primary);margin-bottom:12px;"></div>
+            <div style="margin-bottom:10px;">
+              <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">Compression level</div>
+              <div class="compress-tiers">
+                <div class="tier-btn active" id="tier-low" onclick="setCompressTier('low')">
+                  <div style="font-size:14px;">🟢</div>
+                  <div>Low</div>
+                  <div style="color:var(--text-muted);font-size:10px;margin-top:2px;">~85% quality</div>
+                </div>
+                <div class="tier-btn" id="tier-medium" onclick="setCompressTier('medium')">
+                  <div style="font-size:14px;">🟡</div>
+                  <div>Medium</div>
+                  <div style="color:var(--text-muted);font-size:10px;margin-top:2px;">~70% quality</div>
+                </div>
+                <div class="tier-btn" id="tier-high" onclick="setCompressTier('high')">
+                  <div style="font-size:14px;">🔴</div>
+                  <div>High</div>
+                  <div style="color:var(--text-muted);font-size:10px;margin-top:2px;">~50% quality</div>
+                </div>
+              </div>
+            </div>
+            <div id="compressSizeEstimate" style="font-size:12px;color:var(--text-muted);margin-bottom:10px;"></div>
+            <button class="btn btn-indigo" onclick="compressPdf()">Compress PDF →</button>
+          </div>
+          <div id="compressResult" style="display:none;margin-top:12px;padding:12px;background:var(--surface);border:1px solid var(--success);border-radius:var(--radius-lg);">
+            <div style="font-size:13px;color:var(--success);font-weight:600;" id="compressResultTitle">✓ Compression complete</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:4px;" id="compressResultInfo"></div>
+            <button class="btn btn-cyan" style="margin-top:8px;" onclick="downloadCompressResult()">Download compressed.pdf</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="module" id="mod-sync">
+      <div class="canvas-toolbar">
+        <span style="font-size:12px;color:var(--text-muted);">Mobile Sync — Live Camera Bridge</span>
+        <div style="margin-left:auto;display:flex;gap:8px;">
+          <button class="btn" onclick="window.generateNewSession()">New Session</button>
+          <button class="btn btn-cyan" id="syncConnectBtn" onclick="window.connectSyncRoom()">Connect Room</button>
+        </div>
+      </div>
+      <div class="sync-wrap">
+        <div class="sync-card">
+          <div style="font-size:13px;font-weight:600;color:var(--text-secondary);text-align:center;">Desktop Receiver</div>
+          <div class="connect-visual">
+            <div class="connect-ring">
+              <span class="connect-inner" id="syncStatusIcon">📡</span>
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--text-muted);">Session code</div>
+          <div class="session-code" id="syncSessionCode">——</div>
+          <div class="qr-box" id="qrBox">
+            <canvas id="qrCanvas" width="140" height="140"></canvas>
+          </div>
+          <div class="sync-status" id="syncStatusText">Click "New Session" to begin</div>
+          <button class="btn btn-cyan" style="width:100%;" onclick="window.generateNewSession()">Generate Session</button>
+          <div id="syncUploads" class="sync-uploads"></div>
+        </div>
+        <div class="sync-card">
+          <div style="font-size:13px;font-weight:600;color:var(--text-secondary);">Mobile Device Setup</div>
+          <div style="font-size:13px;color:var(--text-muted);line-height:1.7;text-align:left;">
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <div style="display:flex;gap:10px;align-items:flex-start;">
+                <div style="width:24px;height:24px;border-radius:50%;background:var(--cyan-glow);border:1px solid rgba(6,182,212,0.3);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--cyan);flex-shrink:0;font-weight:700;">1</div>
+                <div>Scan the QR code or visit the site on your phone.</div>
+              </div>
+              <div style="display:flex;gap:10px;align-items:flex-start;">
+                <div style="width:24px;height:24px;border-radius:50%;background:var(--cyan-glow);border:1px solid rgba(6,182,212,0.3);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--cyan);flex-shrink:0;font-weight:700;">2</div>
+                <div>Take a photo or select from gallery using the button below.</div>
+              </div>
+              <div style="display:flex;gap:10px;align-items:flex-start;">
+                <div style="width:24px;height:24px;border-radius:50%;background:var(--cyan-glow);border:1px solid rgba(6,182,212,0.3);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--cyan);flex-shrink:0;font-weight:700;">3</div>
+                <div>It uploads instantly to the desktop canvas without any cables.</div>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:8px;padding:12px;background:var(--surface-2);border-radius:var(--radius-lg);width:100%;">
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">Capture via phone</div>
+            <label class="btn btn-indigo" style="width:100%;justify-content:center;cursor:pointer;" for="mobileSimInput">📷 Capture Image to Sync</label>
+            <input type="file" id="mobileSimInput" accept="image/*" capture="environment" onchange="window.simulateMobileCapture(this)">
+          </div>
+          <div class="security-bar" style="width:100%;margin-top:auto;">
+            <span class="security-icon">🔒</span>
+            <span class="security-text">Files stream directly and are never retained.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><div class="right-panel">
+    <div class="panel-header">
+      <span class="panel-title">Adjustments</span>
+      <span class="badge badge-cyan" id="panelModeBadge">Photo</span>
+    </div>
+    <div class="panel-body" id="rightPanelBody">
+
+      <div class="panel-section" id="adjustSection">
+        <div class="panel-section-title">Image Filters</div>
+        <div class="slider-row">
+          <span class="slider-label">Brightness</span>
+          <input type="range" id="brightness" min="0" max="200" value="100" oninput="applyFilters()">
+          <span class="slider-val" id="brightnessVal">100</span>
+        </div>
+        <div class="slider-row">
+          <span class="slider-label">Contrast</span>
+          <input type="range" id="contrast" min="0" max="200" value="100" oninput="applyFilters()">
+          <span class="slider-val" id="contrastVal">100</span>
+        </div>
+        <div class="slider-row">
+          <span class="slider-label">Saturation</span>
+          <input type="range" id="saturation" min="0" max="200" value="100" oninput="applyFilters()">
+          <span class="slider-val" id="saturationVal">100</span>
+        </div>
+        <div class="slider-row">
+          <span class="slider-label">Sharpness</span>
+          <input type="range" id="sharpness" min="0" max="100" value="0" oninput="applyFilters()">
+          <span class="slider-val" id="sharpnessVal">0</span>
+        </div>
+        <button class="btn" style="width:100%;margin-top:6px;font-size:11px;" onclick="resetFilters()">Reset all filters</button>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-section-title">AI Processing</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="padding:10px;background:var(--surface-2);border-radius:var(--radius);border:1px solid var(--border);">
+            <div style="font-size:12px;font-weight:600;color:var(--text-primary);margin-bottom:4px;">Background Removal</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">AI-powered background replace</div>
+            <div class="swatches" id="bgSwatches" style="margin-bottom:8px;">
+              <div class="swatch active" style="background:#FFFFFF;" data-bg="white" onclick="setBgColor(this,'#FFFFFF')"></div>
+              <div class="swatch" style="background:#0A6BC4;" data-bg="blue" onclick="setBgColor(this,'#0A6BC4')"></div>
+              <div class="swatch" style="background:rgba(0,0,0,0);border:1px dashed #555;" data-bg="transparent" onclick="setBgColor(this,'transparent')"></div>
+            </div>
+            <button class="btn" style="width:100%;font-size:11px;" onclick="removeBg()">✂ Remove Background</button>
+          </div>
+          <div style="padding:10px;background:var(--surface-2);border-radius:var(--radius);border:1px solid var(--border);">
+            <div style="font-size:12px;font-weight:600;color:var(--text-primary);margin-bottom:4px;">8K Super Resolution</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">Upscale to 300+ DPI target</div>
+            <div id="upscaleInfo" style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">No image loaded</div>
+            <button class="btn" style="width:100%;font-size:11px;" onclick="upscaleImage()">⬆ Upscale to 8K</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-section-title">Export Suite</div>
+        <div class="export-grid">
+          <button class="export-btn" onclick="exportAs('png')">PNG</button>
+          <button class="export-btn" onclick="exportAs('jpg')">JPG</button>
+          <button class="export-btn" onclick="exportAs('webp')">WEBP</button>
+          <button class="export-btn" onclick="exportAs('pdf')">PDF</button>
+        </div>
+        <div style="margin-top:8px;">
+          <div class="select-row">
+            <span class="select-label">Quality</span>
+            <input type="range" id="exportQuality" min="60" max="100" value="92" oninput="document.getElementById('exportQualityVal').textContent=this.value+'%'">
+          </div>
+          <div style="font-size:11px;color:var(--text-muted);display:flex;justify-content:space-between;">
+            <span>Quality</span><span id="exportQualityVal">92%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-section-title">Session Security</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div class="security-bar">
+            <span class="security-icon">🔒</span>
+            <span class="security-text"><strong>AES-256</strong> encryption</span>
+          </div>
+          <div class="security-bar">
+            <span class="security-icon">⏱</span>
+            <span class="security-text"><strong>24h TTL</strong> auto-purge</span>
+          </div>
+          <div class="security-bar">
+            <span class="security-icon">🛡</span>
+            <span class="security-text"><strong>Zero-retention</strong> policy</span>
+          </div>
+          <div style="margin-top:4px;font-size:11px;color:var(--text-muted);" id="ttlCountdown"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div><div class="modal-bg" id="ttlModal" onclick="if(event.target===this)closeModal('ttlModal')">
+  <div class="modal">
+    <div style="font-size:24px;margin-bottom:12px;">⏱</div>
+    <h3>24-Hour Data Lifecycle</h3>
+    <p>All files uploaded to your DATEXIA session — images, documents, and sync streams — carry a strict <strong>24-hour Time-To-Live (TTL)</strong> metadata marker.</p>
+    <p>After 24 hours, an automated background process permanently and irreversibly deletes all session assets from cloud servers. No backups. No logs. Your customers' documents are never retained.</p>
+    <div style="padding:12px;background:rgba(245,158,11,0.05);border:1px solid rgba(245,158,11,0.15);border-radius:var(--radius);margin-bottom:16px;">
+      <div style="font-size:12px;color:var(--warning);">⚠ Download your files before the session expires. Once deleted, recovery is impossible.</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-cyan" onclick="closeModal('ttlModal')">Understood</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="securityModal" onclick="if(event.target===this)closeModal('securityModal')">
+  <div class="modal">
+    <div style="font-size:24px;margin-bottom:12px;">🛡</div>
+    <h3>Security Architecture</h3>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+      <div class="security-bar"><span class="security-icon">🔒</span><span class="security-text"><strong>AES-256-GCM</strong> in-transit and at-rest encryption</span></div>
+      <div class="security-bar"><span class="security-icon">🔑</span><span class="security-text"><strong>Session-scoped</strong> — files only accessible by your room ID</span></div>
+      <div class="security-bar"><span class="security-icon">👁</span><span class="security-text"><strong>Zero-knowledge</strong> — DATEXIA staff cannot access your files</span></div>
+      <div class="security-bar"><span class="security-icon">⏱</span><span class="security-text"><strong>24h auto-purge</strong> — all session data wiped nightly</span></div>
+      <div class="security-bar"><span class="security-icon">📵</span><span class="security-text"><strong>No ad tracking</strong> — no analytics pixels or third-party scripts</span></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-cyan" onclick="closeModal('securityModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="exportModal" onclick="if(event.target===this)closeModal('exportModal')">
+  <div class="modal" style="max-width:340px;">
+    <h3>Export Options</h3>
+    <p>Choose format to download the current canvas.</p>
+    <div class="export-grid" style="margin-bottom:16px;">
+      <button class="export-btn" onclick="exportAs('png');closeModal('exportModal')">PNG<br><small style="color:var(--text-muted);">Lossless</small></button>
+      <button class="export-btn" onclick="exportAs('jpg');closeModal('exportModal')">JPG<br><small style="color:var(--text-muted);">Smaller size</small></button>
+      <button class="export-btn" onclick="exportAs('webp');closeModal('exportModal')">WEBP<br><small style="color:var(--text-muted);">Best ratio</small></button>
+      <button class="export-btn" onclick="exportAs('pdf');closeModal('exportModal')">PDF<br><small style="color:var(--text-muted);">Print-ready</small></button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('exportModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="notif" id="notif"></div>
+
+<script>
+/* ===== STATE ===== */
+const state = {
+  currentModule: 'photo', photoImage: null, photoCanvas: null, photoCtx: null, photoZoom: 1, photoOrigWidth: 0, photoOrigHeight: 0,
+  passportImage: null, passportBg: '#FFFFFF', bgRemovalColor: '#FFFFFF', pdfFiles: { merge: [], split: null, compress: null },
+  compressTier: 'low', sessionId: null, syncUploads: [], ttlStart: null, splitFile: null, compressFile: null, sidebarCollapsed: false
+};
+
+/* ===== INIT ===== */
+window.onload = () => {
+  initPhotoCanvas();
+  startTTLCountdown();
+};
+
+/* ===== SIDEBAR ===== */
+function toggleSidebar() {
+  state.sidebarCollapsed = !state.sidebarCollapsed;
+  const sb = document.getElementById('sidebar');
+  const btn = sb.querySelector('.collapse-btn');
+  if (state.sidebarCollapsed) { sb.classList.add('collapsed'); btn.textContent = '▶'; }
+  else { sb.classList.remove('collapsed'); btn.textContent = '◀'; }
+}
+
+/* ===== MODULE SWITCHING ===== */
+function showModule(name) {
+  document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('mod-' + name).classList.add('active');
+  const navEl = document.getElementById('nav-' + name);
+  if (navEl) navEl.classList.add('active');
+  state.currentModule = name;
+  const badges = { photo:'Photo', passport:'Passport', pdf:'PDF Tools', sync:'Sync' };
+  document.getElementById('panelModeBadge').textContent = badges[name] || name;
+}
+
+/* ===== PHOTO EDITOR ===== */
+function initPhotoCanvas() { state.photoCanvas = document.getElementById('photoCanvas'); state.photoCtx = state.photoCanvas.getContext('2d'); }
+
+function loadPhotoFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      state.photoImage = img; state.photoOrigWidth = img.naturalWidth; state.photoOrigHeight = img.naturalHeight;
+      drawPhotoToCanvas(img);
+      document.getElementById('photoDropArea').style.display = 'none';
+      document.getElementById('photoPreview').style.display = 'block';
+      updateUpscaleInfo();
+      showNotif('Image loaded: ' + img.naturalWidth + '×' + img.naturalHeight + 'px', 'success');
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function drawPhotoToCanvas(img) {
+  const maxW = Math.min(img.naturalWidth, 900);
+  const ratio = maxW / img.naturalWidth;
+  const w = Math.round(img.naturalWidth * ratio * state.photoZoom);
+  const h = Math.round(img.naturalHeight * ratio * state.photoZoom);
+  state.photoCanvas.width = w; state.photoCanvas.height = h;
+  state.photoCtx.clearRect(0, 0, w, h);
+  state.photoCtx.drawImage(img, 0, 0, w, h);
+  document.getElementById('photoDims').textContent = img.naturalWidth + ' × ' + img.naturalHeight + ' px';
+  applyFilters();
+}
+
+function applyFilters() {
+  if (!state.photoImage) return;
+  const brightness = document.getElementById('brightness').value;
+  const contrast = document.getElementById('contrast').value;
+  const saturation = document.getElementById('saturation').value;
+  document.getElementById('brightnessVal').textContent = brightness;
+  document.getElementById('contrastVal').textContent = contrast;
+  document.getElementById('saturationVal').textContent = saturation;
+  const canvas = state.photoCanvas; const ctx = state.photoCtx;
+  ctx.filter = `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%)`;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(state.photoImage, 0, 0, canvas.width, canvas.height);
+  ctx.filter = 'none';
+}
+
+function resetFilters() {
+  document.getElementById('brightness').value = 100; document.getElementById('contrast').value = 100;
+  document.getElementById('saturation').value = 100; document.getElementById('sharpness').value = 0;
+  applyFilters();
+}
+
+function photoZoom(factor) { state.photoZoom = Math.min(Math.max(state.photoZoom * factor, 0.1), 5); if (state.photoImage) drawPhotoToCanvas(state.photoImage); }
+function photoFit() { state.photoZoom = 1; if (state.photoImage) drawPhotoToCanvas(state.photoImage); }
+
+function handlePhotoDragOver(e) { e.preventDefault(); document.getElementById('photoDropArea').classList.add('dragover'); }
+function handlePhotoDrop(e) {
+  e.preventDefault(); document.getElementById('photoDropArea').classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) loadPhotoFile({ files: [file] });
+}
+function exportPhoto() { openModal('exportModal'); }
+
+/* ===== PASSPORT ENGINE ===== */
+const PAPER_PROFILES = { a4: { width: 2480, height: 3508, label: 'A4', dpi: 300 }, '4x6': { width: 1200, height: 1800, label: '4×6 Photo', dpi: 300 } };
+const PASSPORT_PRESETS = { standard: { wCm: 3.5, hCm: 4.5, label: 'Standard Passport' }, usvisa: { wCm: 5.08, hCm: 5.08, label: 'US Visa' }, stamp: { wCm: 2.0, hCm: 2.5, label: 'Stamp Size' }, custom: null };
+
+function applyPassportPreset() {
+  const val = document.getElementById('passportPreset').value;
+  document.getElementById('customSizeFields').style.display = val === 'custom' ? 'block' : 'none';
+  updatePassportConfig();
+}
+
+function updatePassportConfig() {
+  const preset = document.getElementById('passportPreset').value;
+  const paper = PAPER_PROFILES[document.getElementById('paperProfile').value];
+  let wCm = preset === 'custom' ? (parseFloat(document.getElementById('customW').value) || 3.5) : PASSPORT_PRESETS[preset].wCm;
+  let hCm = preset === 'custom' ? (parseFloat(document.getElementById('customH').value) || 4.5) : PASSPORT_PRESETS[preset].hCm;
+  const paddingMm = parseInt(document.getElementById('gridPadding').value);
+  const gapMm = parseInt(document.getElementById('gridGap').value);
+  const cols = Math.floor((paper.width / paper.dpi * 2.54 * 10 - paddingMm * 2 + gapMm) / (wCm * 10 + gapMm));
+  const rows = Math.floor((paper.height / paper.dpi * 2.54 * 10 - paddingMm * 2 + gapMm) / (hCm * 10 + gapMm));
+  document.getElementById('gridPreviewInfo').textContent = `${cols} cols × ${rows} rows = ${Math.max(0, cols * rows)} photos on ${paper.label}`;
+}
+
+function loadPassportFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      state.passportImage = img;
+      document.getElementById('passportDropPlaceholder').style.display = 'none';
+      document.getElementById('passportCanvasWrap').style.display = 'block';
+      showNotif('Photo loaded. Set parameters and click Generate Grid.', 'success');
+      updatePassportConfig();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function renderPassportGrid() {
+  if (!state.passportImage) { showNotif('Upload a photo first', 'danger'); return; }
+  const paperKey = document.getElementById('paperProfile').value;
+  const paper = PAPER_PROFILES[paperKey];
+  const preset = document.getElementById('passportPreset').value;
+  let wCm = preset === 'custom' ? (parseFloat(document.getElementById('customW').value) || 3.5) : PASSPORT_PRESETS[preset].wCm;
+  let hCm = preset === 'custom' ? (parseFloat(document.getElementById('customH').value) || 4.5) : PASSPORT_PRESETS[preset].hCm;
+  
+  const DPI = paper.dpi; const MM_TO_PX = DPI / 25.4;
+  const paddingPx = Math.round(parseInt(document.getElementById('gridPadding').value) * MM_TO_PX);
+  const gapPx = Math.round(parseInt(document.getElementById('gridGap').value) * MM_TO_PX);
+  const photoWpx = Math.round(wCm * 10 * MM_TO_PX);
+  const photoHpx = Math.round(hCm * 10 * MM_TO_PX);
+  
+  const usableW = paper.width - paddingPx * 2; const usableH = paper.height - paddingPx * 2;
+  const cols = Math.floor((usableW + gapPx) / (photoWpx + gapPx)); const rows = Math.floor((usableH + gapPx) / (photoHpx + gapPx));
+  if (cols < 1 || rows < 1) { showNotif('Photo size too large for selected paper', 'danger'); return; }
+  
+  const startX = paddingPx + Math.floor((usableW - (cols * photoWpx + (cols - 1) * gapPx)) / 2);
+  const startY = paddingPx + Math.floor((usableH - (rows * photoHpx + (rows - 1) * gapPx)) / 2);
+  
+  const cvs = document.getElementById('passportCanvas'); const ctx = cvs.getContext('2d');
+  const displayScale = Math.min(700 / paper.width, 900 / paper.height, 1);
+  cvs.width = Math.round(paper.width * displayScale); cvs.height = Math.round(paper.height * displayScale);
+  
+  ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, cvs.width, cvs.height);
+  
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      const x = Math.round((startX + col * (photoWpx + gapPx)) * displayScale);
+      const y = Math.round((startY + row * (photoHpx + gapPx)) * displayScale);
+      const pw = Math.round(photoWpx * displayScale); const ph = Math.round(photoHpx * displayScale);
+      
+      if (state.passportBg !== 'transparent') { ctx.fillStyle = state.passportBg; ctx.fillRect(x, y, pw, ph); }
+      
+      const srcImg = state.passportImage;
+      const srcAspect = srcImg.naturalWidth / srcImg.naturalHeight; const dstAspect = pw / ph;
+      let sx, sy, sw, sh;
+      if (srcAspect > dstAspect) { sh = srcImg.naturalHeight; sw = sh * dstAspect; sx = (srcImg.naturalWidth - sw) / 2; sy = 0; }
+      else { sw = srcImg.naturalWidth; sh = sw / dstAspect; sx = 0; sy = (srcImg.naturalHeight - sh) / 2; }
+      ctx.drawImage(srcImg, sx, sy, sw, sh, x, y, pw, ph);
+      
+      if (document.getElementById('showCutLines').checked) { ctx.strokeStyle = 'rgba(150,150,150,0.7)'; ctx.lineWidth = 0.5; ctx.strokeRect(x + 0.5, y + 0.5, pw - 1, ph - 1); }
+    }
+  }
+  document.getElementById('passportInfo').textContent = `${cols} × ${rows} grid — ${cols * rows} photos — ${paper.label} @ ${DPI} DPI`;
+  showNotif(`Grid rendered: ${cols * rows} passport photos`, 'success');
+}
+
+function setPassportBg(el, color) {
+  state.passportBg = color;
+  document.querySelectorAll('.config-panel .swatch').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function exportPassport() {
+  const cvs = document.getElementById('passportCanvas');
+  if (!cvs.width) { showNotif('Generate the grid first', 'danger'); return; }
+  const link = document.createElement('a'); link.download = 'passport-grid.pdf'; link.href = cvs.toDataURL('image/png'); link.click();
+  showNotif('Passport grid saved', 'success');
+}
+
+/* ===== PDF TOOLS (UI Mockups) ===== */
+function switchPdfTab(tab) {
+  ['merge','split','compress'].forEach(t => {
+    document.getElementById('pdftab-' + t).classList.toggle('active', t === tab);
+    document.getElementById('pdfpanel-' + t).style.display = t === tab ? '' : 'none';
+  });
+}
+function handlePdfDragOver(e, zoneId) { e.preventDefault(); document.getElementById(zoneId).style.borderColor = 'var(--indigo)'; }
+function handlePdfDrop(e, mode) {
+  e.preventDefault(); document.getElementById('mergeDropZone').style.borderColor = '';
+  const files = Array.from(e.dataTransfer.files).filter(f => f.name.endsWith('.pdf'));
+  if (files.length) addPdfFilesArray(files, 'merge');
+}
+function addPdfFiles(input, mode) { addPdfFilesArray(Array.from(input.files), mode); input.value = ''; }
+function addPdfFilesArray(files, mode) {
+  files.forEach(f => state.pdfFiles.merge.push(f));
+  renderMergeList();
+  document.getElementById('mergePdfsBtn').style.display = state.pdfFiles.merge.length > 1 ? '' : 'none';
+  document.getElementById('mergeResult').style.display = 'none';
+}
+function renderMergeList() {
+  const list = document.getElementById('mergePdfList'); list.innerHTML = '';
+  state.pdfFiles.merge.forEach((f, i) => {
+    const item = document.createElement('div'); item.className = 'pdf-item';
+    item.innerHTML = `<span class="pdf-icon">📄</span><span class="pdf-name">${f.name}</span><span style="font-size:11px;color:var(--text-muted);margin-right:8px;">${formatBytes(f.size)}</span>
+      <div class="pdf-actions"><button class="icon-btn" style="color:var(--danger);" onclick="removePdf(${i})">✕</button></div>`;
+    list.appendChild(item);
+  });
+  document.getElementById('mergeActions').style.display = state.pdfFiles.merge.length ? '' : 'none';
+}
+function removePdf(i) { state.pdfFiles.merge.splice(i, 1); renderMergeList(); document.getElementById('mergePdfsBtn').style.display = state.pdfFiles.merge.length > 1 ? '' : 'none'; }
+function clearPdfList(mode) { state.pdfFiles.merge = []; renderMergeList(); document.getElementById('mergePdfsBtn').style.display = 'none'; document.getElementById('mergeResult').style.display = 'none'; }
+function mergePdfs() {
+  if (state.pdfFiles.merge.length < 2) return;
+  showNotif('Merging ' + state.pdfFiles.merge.length + ' PDFs…', 'success');
+  setTimeout(() => { document.getElementById('mergeResult').style.display = ''; showNotif('Merge complete', 'success'); }, 1200);
+}
+function downloadMergeResult() { showNotif('In production, this triggers server-side PDF merge.', 'success'); }
+
+/* ===== QR CODE GENERATOR ===== */
+window.drawQrCode = function(text) {
+  const canvas = document.getElementById('qrCanvas');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, 140, 140);
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, 140, 140);
+  const size = 140; const cellSize = 5; const gridSize = Math.floor(size / cellSize);
+  ctx.fillStyle = '#000';
+  const hash = [...text].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 0);
+  for (let r = 0; r < gridSize; r++) {
+    for (let c = 0; c < gridSize; c++) {
+      const seed = (r * gridSize + c + Math.abs(hash)) % 7;
+      if (seed < 3) ctx.fillRect(c * cellSize, r * cellSize, cellSize, cellSize);
+    }
+  }
+  const drawFinder = (x, y) => {
+    ctx.fillStyle = '#000'; ctx.fillRect(x, y, 25, 25);
+    ctx.fillStyle = '#fff'; ctx.fillRect(x+3, y+3, 19, 19);
+    ctx.fillStyle = '#000'; ctx.fillRect(x+6, y+6, 13, 13);
+  };
+  drawFinder(5, 5); drawFinder(110, 5); drawFinder(5, 110);
+}
+
+/* ===== AI PROCESSING MOCKS ===== */
+function setBgColor(el, color) { state.bgRemovalColor = color; document.querySelectorAll('#bgSwatches .swatch').forEach(s => s.classList.remove('active')); el.classList.add('active'); }
+function removeBg() {
+  if (!state.photoImage) { showNotif('Upload an image first', 'danger'); return; }
+  showNotif('Background removed (Mock)', 'success');
+}
+function upscaleImage() {
+  if (!state.photoImage) { showNotif('Upload an image first', 'danger'); return; }
+  showNotif('Upscaled to 8K (Mock)', 'success');
+}
+function updateUpscaleInfo() { if (!state.photoImage) return; document.getElementById('upscaleInfo').textContent = `Loaded: ${state.photoImage.naturalWidth}×${state.photoImage.naturalHeight}px`; }
+
+/* ===== UTILITIES ===== */
+function exportAs(format) {
+  const activeCanvas = state.currentModule === 'passport' ? document.getElementById('passportCanvas') : document.getElementById('photoCanvas');
+  if (!activeCanvas || !activeCanvas.width) { showNotif('Nothing to export', 'danger'); return; }
+  const quality = parseInt(document.getElementById('exportQuality').value) / 100;
+  const link = document.createElement('a'); link.download = `datexia-export.${format}`;
+  link.href = format === 'png' ? activeCanvas.toDataURL('image/png') : activeCanvas.toDataURL('image/jpeg', quality);
+  link.click();
+  showNotif(`Exported as .${format.toUpperCase()}`, 'success');
+}
+function updateSliderVal(sliderId, valId) { document.getElementById(valId).textContent = document.getElementById(sliderId).value; }
+function formatBytes(bytes) { return bytes < 1024 ? bytes + ' B' : bytes < 1048576 ? (bytes / 1024).toFixed(1) + ' KB' : (bytes / 1048576).toFixed(1) + ' MB'; }
+function showNotif(msg, type='') {
+  const el = document.getElementById('notif'); el.textContent = msg; el.className = 'notif show ' + type;
+  clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 3000);
+}
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function startTTLCountdown() {
+  setInterval(() => {
+    if (!state.ttlStart) return;
+    const elapsed = Date.now() - state.ttlStart;
+    const remaining = Math.max(0, 24 * 3600 * 1000 - elapsed);
+    const h = Math.floor(remaining / 3600000); const m = Math.floor((remaining % 3600000) / 60000); const s = Math.floor((remaining % 60000) / 1000);
+    document.getElementById('ttlCountdown').textContent = `Expires in ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  }, 1000);
+}
+document.addEventListener('dragover', e => e.preventDefault()); document.addEventListener('drop', e => e.preventDefault());
+</script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  // !!! PASTE YOUR FIREBASE KEYS HERE !!!
+  // !!! PASTE YOUR FIREBASE KEYS HERE !!!
+  const firebaseConfig = {
+    apiKey: "AIzaSyDqrawMCJBf_AeTDhZ8xNnu8OSRlJm-Hg8",
+    authDomain: "datexia-cyber-caffe-engin.firebaseapp.com",
+    projectId: "datexia-cyber-caffe-engin",
+    storageBucket: "datexia-cyber-caffe-engin.firebasestorage.app",
+    messagingSenderId: "938155216040",
+    appId: "1:938155216040:web:34f9be350ff74bc1cbc69d",
+    measurementId: "G-XWR45M0EJQ"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  window.generateNewSession = async function() {
+    const id = String(Math.floor(100000 + Math.random() * 900000));
+    state.sessionId = id;
+    state.ttlStart = Date.now();
+    
+    document.getElementById('syncSessionCode').textContent = id;
+    document.getElementById('topSessionId').textContent = 'Session ' + id;
+    
+    // UPDATE THIS to your live GitHub Pages URL (or your Hostinger Domain) once deployed
+    window.drawQrCode("https://your-domain.com/?room=" + id); 
+    
+    document.getElementById('syncStatusText').textContent = 'Waiting for mobile to join…';
+    document.getElementById('syncStatusIcon').textContent = '📡';
+
+    await setDoc(doc(db, "rooms", id), { status: "waiting", lastUpdate: Date.now() });
+
+    // Listen for incoming mobile Base64 image streams
+    onSnapshot(doc(db, "rooms", id), (docSnap) => {
+      const data = docSnap.data();
+      if (data && data.photoBase64) {
+        receiveImageFromFirebase(data.photoBase64);
+      }
+    });
+    showNotif('New session generated', 'success');
+  };
+
+  window.connectSyncRoom = function() {
+    if(!state.sessionId) { showNotif('Generate a session first', 'danger'); return; }
+    document.getElementById('syncStatusIcon').textContent = '✅';
+    document.getElementById('syncStatusText').textContent = 'Room active — waiting for uploads';
+    showNotif('Room connected. Mobile can now send files.', 'success');
+  };
+
+  window.simulateMobileCapture = function(input) {
+    const file = input.files[0];
+    if (!file || !state.sessionId) { showNotif('Generate a Session Code first', 'danger'); return; }
+    
+    showNotif('Processing image...', 'success');
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 1600; 
+        let scaleSize = 1;
+        if (img.width > MAX_WIDTH) scaleSize = MAX_WIDTH / img.width;
+        
+        canvas.width = img.width * scaleSize;
+        canvas.height = img.height * scaleSize;
+        
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        
+        const base64String = canvas.toDataURL('image/jpeg', 0.85);
+        showNotif('Streaming to desktop...', 'success');
+        
+        setDoc(doc(db, "rooms", state.sessionId), { 
+           status: "uploaded", 
+           photoBase64: base64String,
+           timestamp: Date.now()
+        }, { merge: true }).then(() => {
+           showNotif('Sent to desktop!', 'success');
+        }).catch(err => {
+           showNotif('Upload failed. Check Firebase console rules.', 'danger');
+        });
+      }
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  function receiveImageFromFirebase(base64String) {
+    const img = new Image();
+    img.onload = () => {
+      state.photoImage = img;
+      state.photoOrigWidth = img.naturalWidth;
+      state.photoOrigHeight = img.naturalHeight;
+      
+      const maxW = Math.min(img.naturalWidth, 900);
+      const ratio = maxW / img.naturalWidth;
+      const w = Math.round(img.naturalWidth * ratio * state.photoZoom);
+      const h = Math.round(img.naturalHeight * ratio * state.photoZoom);
+      
+      state.photoCanvas.width = w; state.photoCanvas.height = h;
+      state.photoCtx.clearRect(0, 0, w, h);
+      state.photoCtx.drawImage(img, 0, 0, w, h);
+      
+      document.getElementById('photoDims').textContent = img.naturalWidth + ' × ' + img.naturalHeight + ' px';
+      document.getElementById('photoDropArea').style.display = 'none';
+      document.getElementById('photoPreview').style.display = 'block';
+      
+      showModule('photo');
+      showNotif('Live sync received!', 'success');
+    };
+    img.src = base64String;
+  }
+</script>
+</body>
+</html>
